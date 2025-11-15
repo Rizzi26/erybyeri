@@ -106,7 +106,7 @@ export default function Produtos() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 md:gap-12">
             {produtos.map((produto, index) => {
               // Array de imagens para alternar entre os produtos
-              const images = ['/13.png', '/14.png', '/16.png', '/18.png'];
+              const images = ['/13.png', '/14.png', '/16.png', '/18.png', '/23.png', '/22.png'];
               const imageSrc = images[index % images.length];
 
               return (

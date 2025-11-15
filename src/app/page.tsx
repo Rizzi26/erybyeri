@@ -63,7 +63,7 @@ export default function Home() {
             </div>
             <div className="aspect-[3/4] bg-gray-100 rounded-sm overflow-hidden">
               <img
-                src="/13.png"
+                src="/elegant.png"
                 alt="Bolsa ERYBYERI"
                 className="w-full h-full object-cover"
               />

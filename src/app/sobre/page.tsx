@@ -178,7 +178,7 @@ export default function Sobre() {
         {/* Background GIF */}
         <div className="absolute inset-0 w-full h-full z-0">
           <img
-            src="/erybyeri.gif"
+            src="/product_diferent.gif"
             alt="ERYBYERI Background"
             className="w-full h-full object-cover"
           />
