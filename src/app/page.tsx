@@ -1,7 +1,23 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import PageTransition from '@/components/PageTransition'
 
 export default function Home() {
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const carouselImages = [
+    '/home/product_night_bag_blue.png',
+    '/home/launch.png'
+  ]
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % carouselImages.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length)
+  }
   return (
     <PageTransition>
       <main className="min-h-screen">
@@ -10,7 +26,7 @@ export default function Home() {
         {/* Background GIF */}
         <div className="absolute inset-0 w-full h-full z-0">
           <img
-            src="/erybyeri.gif"
+            src="/home/erybyeri.gif"
             alt="ERYBYERI Background"
             className="w-full h-full object-cover"
           />
@@ -61,12 +77,91 @@ export default function Home() {
                 CONHEÇA NOSSA HISTÓRIA
               </Link>
             </div>
-            <div className="aspect-[3/4] bg-gray-100 rounded-sm overflow-hidden">
-              <img
-                src="/elegant.png"
-                alt="Bolsa ERYBYERI"
-                className="w-full h-full object-cover"
-              />
+            <div className="aspect-[4/3] bg-gray-100 rounded-sm overflow-hidden relative group">
+              {/* Carrossel de Imagens */}
+              <div className="relative w-full h-full overflow-hidden">
+                <div
+                  className="flex h-full transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                >
+                  {carouselImages.map((image, index) => (
+                    <div
+                      key={index}
+                      className="min-w-full h-full flex-shrink-0"
+                    >
+                      <img
+                        src={image}
+                        alt={`ERYBYERI - Slide ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Seta Esquerda - Apenas na segunda imagem (index 1) */}
+                {currentSlide === 1 && (
+                  <button
+                    onClick={prevSlide}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white p-3 sm:p-4 rounded-full transition-all duration-300 shadow-lg"
+                    aria-label="Anterior"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-5 h-5 sm:w-6 sm:h-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 19.5L8.25 12l7.5-7.5"
+                      />
+                    </svg>
+                  </button>
+                )}
+
+                {/* Seta Direita - Apenas na primeira imagem (index 0) */}
+                {currentSlide === 0 && (
+                  <button
+                    onClick={nextSlide}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white p-3 sm:p-4 rounded-full transition-all duration-300 shadow-lg"
+                    aria-label="Próximo"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-5 h-5 sm:w-6 sm:h-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                      />
+                    </svg>
+                  </button>
+                )}
+
+                {/* Indicadores de Slide */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+                  {carouselImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        index === currentSlide
+                          ? 'bg-white w-8'
+                          : 'bg-white/50 hover:bg-white/75'
+                      }`}
+                      aria-label={`Ir para slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

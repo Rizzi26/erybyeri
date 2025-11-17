@@ -32,7 +32,7 @@ export default function Navbar() {
         }`}>
           {/* Logo */}
           <Link href="/" className="text-lg sm:text-xl md:text-2xl font-light tracking-[0.15em] md:tracking-[0.2em] hover:opacity-70 transition-opacity">
-            ERYBYERI
+            ERYBYERI .
           </Link>
 
           {/* Desktop Navigation */}

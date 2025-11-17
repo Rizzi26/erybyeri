@@ -28,7 +28,7 @@ export default function Sobre() {
           <div className="grid md:grid-cols-2 gap-12 sm:gap-16 md:gap-20 lg:gap-24 items-center mb-20 sm:mb-24 md:mb-28 lg:mb-32">
             <div className="aspect-[4/5] bg-gray-100 rounded-sm overflow-hidden">
               <img
-                src="/14.png"
+                src="/products/product_casual_bag_yellow.png"
                 alt="Bolsa ERYBYERI"
                 className="w-full h-full object-cover"
               />
@@ -75,7 +75,7 @@ export default function Sobre() {
             </div>
             <div className="aspect-[4/5] bg-gray-100 order-1 md:order-2 rounded-sm overflow-hidden">
               <img
-                src="/16.png"
+                src="/products/product_night_bag_pink.png"
                 alt="Bolsa ERYBYERI"
                 className="w-full h-full object-cover"
               />
@@ -178,7 +178,7 @@ export default function Sobre() {
         {/* Background GIF */}
         <div className="absolute inset-0 w-full h-full z-0">
           <img
-            src="/product_diferent.gif"
+            src="/about/different_product.gif"
             alt="ERYBYERI Background"
             className="w-full h-full object-cover"
           />

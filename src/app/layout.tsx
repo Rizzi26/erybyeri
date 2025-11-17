@@ -16,8 +16,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ERYBYERI - Bolsas Exclusivas",
+  title: "ERYBYERI",
   description: "Bolsas de luxo feitas à mão com design exclusivo e materiais premium",
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({

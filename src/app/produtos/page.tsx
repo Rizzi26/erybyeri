@@ -1,9 +1,8 @@
-import PageTransition from '@/components/PageTransition'
+'use client'
 
-export const metadata = {
-  title: 'Produtos - ERYBYERI',
-  description: 'Explore nossa coleção exclusiva de bolsas de luxo',
-}
+import { useState } from 'react'
+import PageTransition from '@/components/PageTransition'
+import Link from 'next/link'
 
 // Dados de exemplo dos produtos
 const produtos = [
@@ -26,21 +25,21 @@ const produtos = [
     nome: 'Bolsa Evening Luxe',
     preco: 'R$ 2.590,00',
     descricao: 'Perfeita para ocasiões especiais',
-    categoria: 'Festa'
+    categoria: 'Clássica'
   },
   {
     id: 4,
     nome: 'Bolsa Minimal Chic',
     preco: 'R$ 2.190,00',
     descricao: 'Minimalismo refinado e funcional',
-    categoria: 'Casual'
+    categoria: 'Contemporânea'
   },
   {
     id: 5,
     nome: 'Bolsa Executive',
     preco: 'R$ 3.890,00',
     descricao: 'Estilo profissional com elegância',
-    categoria: 'Executiva'
+    categoria: 'Exclusiva'
   },
   {
     id: 6,
@@ -52,6 +51,17 @@ const produtos = [
 ]
 
 export default function Produtos() {
+  const [filtroAtivo, setFiltroAtivo] = useState<string>('TODAS')
+
+  // Filtrar produtos com base na categoria selecionada
+  const produtosFiltrados = produtos.filter(produto => {
+    if (filtroAtivo === 'TODAS') return true
+    if (filtroAtivo === 'CLÁSSICAS' && produto.categoria === 'Clássica') return true
+    if (filtroAtivo === 'CONTEMPORÂNEAS' && produto.categoria === 'Contemporânea') return true
+    if (filtroAtivo === 'EXCLUSIVAS' && produto.categoria === 'Exclusiva') return true
+    return false
+  })
+
   return (
     <PageTransition>
       <main className="min-h-screen pt-16 sm:pt-20">
@@ -60,7 +70,7 @@ export default function Produtos() {
         {/* Background GIF */}
         <div className="absolute inset-0 w-full h-full z-0">
           <img
-            src="/product_ery.gif"
+            src="/products/product_ery.gif"
             alt="ERYBYERI Produtos"
             className="w-full h-full object-cover"
           />
@@ -84,16 +94,44 @@ export default function Produtos() {
       <section className="py-8 sm:py-10 md:py-12 px-4 sm:px-6 md:px-8 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-            <button className="px-4 sm:px-6 py-2 text-xs sm:text-sm tracking-wider border border-black bg-black text-white transition-all duration-300">
+            <button
+              onClick={() => setFiltroAtivo('TODAS')}
+              className={`px-4 sm:px-6 py-2 text-xs sm:text-sm tracking-wider border border-black transition-all duration-300 ${
+                filtroAtivo === 'TODAS'
+                  ? 'bg-black text-white'
+                  : 'bg-transparent text-black hover:bg-black hover:text-white'
+              }`}
+            >
               TODAS
             </button>
-            <button className="px-4 sm:px-6 py-2 text-xs sm:text-sm tracking-wider border border-black hover:bg-black hover:text-white transition-all duration-300">
+            <button
+              onClick={() => setFiltroAtivo('CLÁSSICAS')}
+              className={`px-4 sm:px-6 py-2 text-xs sm:text-sm tracking-wider border border-black transition-all duration-300 ${
+                filtroAtivo === 'CLÁSSICAS'
+                  ? 'bg-black text-white'
+                  : 'bg-transparent text-black hover:bg-black hover:text-white'
+              }`}
+            >
               CLÁSSICAS
             </button>
-            <button className="px-4 sm:px-6 py-2 text-xs sm:text-sm tracking-wider border border-black hover:bg-black hover:text-white transition-all duration-300">
+            <button
+              onClick={() => setFiltroAtivo('CONTEMPORÂNEAS')}
+              className={`px-4 sm:px-6 py-2 text-xs sm:text-sm tracking-wider border border-black transition-all duration-300 ${
+                filtroAtivo === 'CONTEMPORÂNEAS'
+                  ? 'bg-black text-white'
+                  : 'bg-transparent text-black hover:bg-black hover:text-white'
+              }`}
+            >
               CONTEMPORÂNEAS
             </button>
-            <button className="px-4 sm:px-6 py-2 text-xs sm:text-sm tracking-wider border border-black hover:bg-black hover:text-white transition-all duration-300">
+            <button
+              onClick={() => setFiltroAtivo('EXCLUSIVAS')}
+              className={`px-4 sm:px-6 py-2 text-xs sm:text-sm tracking-wider border border-black transition-all duration-300 ${
+                filtroAtivo === 'EXCLUSIVAS'
+                  ? 'bg-black text-white'
+                  : 'bg-transparent text-black hover:bg-black hover:text-white'
+              }`}
+            >
               EXCLUSIVAS
             </button>
           </div>
@@ -103,26 +141,41 @@ export default function Produtos() {
       {/* Products Grid */}
       <section className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8">
         <div className="max-w-7xl mx-auto">
+          {produtosFiltrados.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-lg font-light text-gray-600">Nenhum produto encontrado nesta categoria.</p>
+            </div>
+          ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 md:gap-12">
-            {produtos.map((produto, index) => {
+            {produtosFiltrados.map((produto) => {
               // Array de imagens para alternar entre os produtos
-              const images = ['/13.png', '/14.png', '/16.png', '/18.png', '/23.png', '/22.png'];
-              const imageSrc = images[index % images.length];
+              const images = [
+                '/products/product_casual_bag_green.png',
+                '/products/product_casual_bag_white.png',
+                '/products/product_casual_bag_yellow.png',
+                '/products/product_night_bag_blue.png',
+                '/products/product_night_bag_pink.png',
+                '/products/product_special_bag_shell.png'
+              ];
+              // Usar o ID do produto para manter consistência nas imagens
+              const imageSrc = images[(produto.id - 1) % images.length];
 
               return (
               <div
                 key={produto.id}
-                className="group cursor-pointer px-2"
+                className="group px-2"
               >
                 {/* Product Image */}
-                <div className="aspect-[3/4] bg-gray-100 mb-4 sm:mb-6 overflow-hidden relative rounded-sm">
-                  <img
-                    src={imageSrc}
-                    alt={produto.nome}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500"></div>
-                </div>
+                <Link href={`/produtos/${produto.id}`}>
+                  <div className="aspect-[3/4] bg-gray-100 mb-4 sm:mb-6 overflow-hidden relative rounded-sm cursor-pointer">
+                    <img
+                      src={imageSrc}
+                      alt={produto.nome}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500"></div>
+                  </div>
+                </Link>
 
                 {/* Product Info */}
                 <div className="space-y-2">
@@ -141,13 +194,17 @@ export default function Produtos() {
                 </div>
 
                 {/* Hover Button */}
-                <button className="mt-3 sm:mt-4 w-full py-2.5 sm:py-3 border border-black text-xs sm:text-sm tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white">
+                <Link
+                  href={`/produtos/${produto.id}`}
+                  className="mt-3 sm:mt-4 w-full py-2.5 sm:py-3 border border-black text-xs sm:text-sm tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white block text-center"
+                >
                   VER DETALHES
-                </button>
+                </Link>
               </div>
               );
             })}
           </div>
+          )}
         </div>
       </section>
 
