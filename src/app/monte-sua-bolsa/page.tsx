@@ -166,8 +166,26 @@ Gostaria de mais informações sobre essa configuração!
   }
 
   const abrirInstagramDM = () => {
-    // ig.me/m/username abre diretamente a DM no app mobile
-    window.open('https://ig.me/m/erybyeri', '_blank')
+    // Tenta abrir o app do Instagram diretamente
+    const instagramAppUrl = 'instagram://user?username=erybyeri'
+    const instagramWebUrl = 'https://ig.me/m/erybyeri'
+
+    // Detecta se é mobile
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+    if (isMobile) {
+      // Tenta abrir o app primeiro
+      window.location.href = instagramAppUrl
+
+      // Fallback para web após um pequeno delay se o app não abrir
+      setTimeout(() => {
+        window.location.href = instagramWebUrl
+      }, 2500)
+    } else {
+      // Desktop: abre no navegador
+      window.open(instagramWebUrl, '_blank')
+    }
+
     setShowInstagramModal(false)
   }
 
