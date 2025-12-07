@@ -19,7 +19,8 @@ export const metadata: Metadata = {
   title: "ERYBYERI",
   description: "Bolsas de luxo feitas à mão com design exclusivo e materiais premium",
   icons: {
-    icon: '/logo.png',
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
 };
 

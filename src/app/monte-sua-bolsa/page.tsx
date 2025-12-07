@@ -6,10 +6,15 @@ import PageTransition from '@/components/PageTransition'
 // Tipos
 type Formato = 'casual' | 'handbag' | 'suitcase' | 'nightbag' | null
 type Cor = string | null
+type QuantidadeCores = 'uma' | 'duas' | null
+type CategoriaCor = 'piquet' | 'premium' | null
 
 interface FormData {
   formato: Formato
+  quantidadeCores: QuantidadeCores
   cor: Cor
+  categoriaCor: CategoriaCor
+  corSecundaria: Cor
   acessorios: string[]
   nome: string
   telefone: string
@@ -19,29 +24,40 @@ interface FormData {
 const formatos = [
   {
     id: 'casual' as const,
-    nome: 'Casual',
+    nome: 'Trapézio',
     descricao: 'Perfeita para o dia a dia, espaçosa e versátil',
-    imagem: '/products/product_casual_bag_white.png'
+    imagem: '/bases/trapezio_base.png',
+    preco: 289
   },
   {
     id: 'handbag' as const,
-    nome: 'Handbag',
+    nome: 'Baguette',
     descricao: 'Elegância clássica para todas as ocasiões',
-    imagem: '/products/product_casual_bag_green.png'
+    imagem: '/bases/baguette_base.png',
+    preco: 329
   },
   {
     id: 'suitcase' as const,
-    nome: 'Suitcase',
+    nome: 'Suite Case',
     descricao: 'Compacta e sofisticada, ideal para viagens',
-    imagem: '/products/product_casual_bag_yellow.png'
+    imagem: '/bases/suite_case_base.png',
+    preco: 379
   },
   {
     id: 'nightbag' as const,
-    nome: 'Nightbag',
+    nome: 'Plissê',
     descricao: 'Glamour para suas noites especiais',
-    imagem: '/products/product_night_bag_pink.png'
+    imagem: '/bases/plisse_base.png',
+    preco: 349
   }
 ]
+
+// Preços de cores (segunda cor por categoria)
+const precoCores = {
+  uma: 0,           // Incluído no preço base
+  piquet: 60,       // Adicional para segunda cor Piquet
+  premium: 120      // Adicional para segunda cor Premium
+}
 
 // Paleta de cores disponíveis
 const cores = [
@@ -55,23 +71,79 @@ const cores = [
   { id: 'rosa', nome: 'Rosa Blush', hex: '#E8B4B8' },
 ]
 
-// Acessórios disponíveis
-const acessorios = [
-  { id: 'alca-corrente', nome: 'Alça de Corrente Dourada' },
-  { id: 'alca-couro', nome: 'Alça Extra em Couro' },
-  { id: 'chaveiro', nome: 'Chaveiro Personalizado' },
-  { id: 'forro-seda', nome: 'Forro em Seda' },
-  { id: 'monograma', nome: 'Monograma Bordado' },
-  { id: 'fechadura', nome: 'Fechadura Premium' },
-  { id: 'bolso-interno', nome: 'Bolso Interno com Zíper' },
-  { id: 'protecao', nome: 'Proteção de Base em Metal' },
+// Acessórios disponíveis por modelo
+const todosAcessorios = [
+  // Acessórios comuns
+  { id: 'alca-corrente', nome: 'Alça de Corrente Dourada', preco: 49 },
+  { id: 'alca-couro', nome: 'Alça Extra em Couro', preco: 69 },
+  { id: 'chaveiro', nome: 'Chaveiro Personalizado', preco: 29 },
+  { id: 'forro-seda', nome: 'Forro em Seda', preco: 59 },
+  { id: 'monograma', nome: 'Monograma Bordado', preco: 39 },
+  { id: 'fechadura', nome: 'Fechadura Premium', preco: 45 },
+  { id: 'bolso-interno', nome: 'Bolso Interno com Zíper', preco: 35 },
+  { id: 'protecao', nome: 'Proteção de Base em Metal', preco: 25 },
+  // Acessórios específicos
+  { id: 'organizador', nome: 'Organizador Interno', preco: 55 },
+  { id: 'espelho', nome: 'Espelho Compacto Interno', preco: 19 },
+  { id: 'porta-cartao', nome: 'Porta Cartões Removível', preco: 35 },
+  { id: 'alca-transversal', nome: 'Alça Transversal Ajustável', preco: 79 },
+  { id: 'cadeado', nome: 'Cadeado Decorativo', preco: 39 },
+  { id: 'lenco', nome: 'Lenço de Seda para Alça', preco: 45 },
+  { id: 'dust-bag', nome: 'Dust Bag Personalizado', preco: 29 },
+  { id: 'tag-bagagem', nome: 'Tag de Bagagem em Couro', preco: 35 },
 ]
+
+// Mapeamento de acessórios por formato
+const acessoriosPorFormato: Record<string, string[]> = {
+  // Trapézio - bolsa casual do dia a dia
+  casual: [
+    'alca-couro',
+    'alca-transversal',
+    'chaveiro',
+    'bolso-interno',
+    'organizador',
+    'monograma',
+  ],
+  // Baguette - elegante e compacta
+  handbag: [
+    'alca-corrente',
+    'alca-couro',
+    'chaveiro',
+    'forro-seda',
+    'espelho',
+    'lenco',
+  ],
+  // Suite Case - viagem/trabalho
+  suitcase: [
+    'alca-transversal',
+    'fechadura',
+    'cadeado',
+    'organizador',
+    'porta-cartao',
+    'tag-bagagem',
+    'dust-bag',
+    'protecao',
+  ],
+  // Plissê - noite/festa
+  nightbag: [
+    'alca-corrente',
+    'forro-seda',
+    'espelho',
+    'monograma',
+    'fechadura',
+    'lenco',
+  ],
+}
 
 export default function MonteSuaBolsa() {
   const [step, setStep] = useState(1)
+  const [subStep, setSubStep] = useState(1)
   const [formData, setFormData] = useState<FormData>({
     formato: null,
+    quantidadeCores: null,
     cor: null,
+    categoriaCor: null,
+    corSecundaria: null,
     acessorios: [],
     nome: '',
     telefone: ''
@@ -83,11 +155,31 @@ export default function MonteSuaBolsa() {
 
   // Handlers
   const handleFormatoSelect = (formato: Formato) => {
-    setFormData({ ...formData, formato })
+    // Limpa acessórios ao mudar de formato (pois cada formato tem acessórios diferentes)
+    setFormData({ ...formData, formato, acessorios: [] })
+  }
+
+  // Obter acessórios disponíveis para o formato selecionado
+  const getAcessoriosDisponiveis = () => {
+    if (!formData.formato) return []
+    const idsDisponiveis = acessoriosPorFormato[formData.formato] || []
+    return todosAcessorios.filter(a => idsDisponiveis.includes(a.id))
+  }
+
+  const handleQuantidadeCoresSelect = (quantidade: QuantidadeCores) => {
+    if (quantidade === 'uma') {
+      setFormData({ ...formData, quantidadeCores: quantidade, categoriaCor: null, corSecundaria: null })
+    } else {
+      setFormData({ ...formData, quantidadeCores: quantidade })
+    }
   }
 
   const handleCorSelect = (cor: string) => {
     setFormData({ ...formData, cor })
+  }
+
+  const handleTecidoCorSelect = (categoria: CategoriaCor, cor: string) => {
+    setFormData({ ...formData, categoriaCor: categoria, corSecundaria: cor })
   }
 
   const handleAcessorioToggle = (acessorioId: string) => {
@@ -118,18 +210,79 @@ export default function MonteSuaBolsa() {
     setFormData({ ...formData, telefone: value })
   }
 
+  // Calcular total de sub-etapas na etapa 2
+  const getTotalSubSteps = () => {
+    if (formData.quantidadeCores === 'duas') return 3 // quantidade > cor principal > tecido+cor secundária
+    return 2 // quantidade > cor única
+  }
+
   const nextStep = () => {
-    if (step < totalSteps) setStep(step + 1)
+    if (step === 2) {
+      const totalSubs = getTotalSubSteps()
+      if (subStep < totalSubs) {
+        setSubStep(subStep + 1)
+        return
+      }
+    }
+    if (step < totalSteps) {
+      setStep(step + 1)
+      setSubStep(1)
+    }
   }
 
   const prevStep = () => {
-    if (step > 1) setStep(step - 1)
+    if (step === 2 && subStep > 1) {
+      // Voltando dentro da etapa 2 - limpar dados da sub-etapa atual
+      if (subStep === 3) {
+        // Voltando da sub-etapa 3 (tecido+cor secundária) - limpar seleção
+        setFormData({ ...formData, categoriaCor: null, corSecundaria: null })
+      } else if (subStep === 2) {
+        // Voltando da sub-etapa 2 (cor principal) - limpar cor
+        setFormData({ ...formData, cor: null })
+      }
+      setSubStep(subStep - 1)
+      return
+    }
+
+    if (step > 1) {
+      const prevStepNum = step - 1
+
+      if (step === 4) {
+        // Voltando da etapa 4 (finalizar) para etapa 3 - não precisa limpar nada
+      } else if (step === 3) {
+        // Voltando da etapa 3 (acessórios) para etapa 2 - limpar acessórios
+        setFormData({ ...formData, acessorios: [] })
+      } else if (step === 2) {
+        // Voltando da etapa 2 para etapa 1 - limpar todas as cores
+        setFormData({
+          ...formData,
+          quantidadeCores: null,
+          cor: null,
+          categoriaCor: null,
+          corSecundaria: null
+        })
+      }
+
+      setStep(prevStepNum)
+
+      if (prevStepNum === 2) {
+        // Voltando para etapa 2, ir para última sub-etapa
+        const totalSubs = formData.quantidadeCores === 'duas' ? 3 : 2
+        setSubStep(totalSubs)
+      } else {
+        setSubStep(1)
+      }
+    }
   }
 
   const canProceed = () => {
     switch (step) {
       case 1: return formData.formato !== null
-      case 2: return formData.cor !== null
+      case 2:
+        if (subStep === 1) return formData.quantidadeCores !== null
+        if (subStep === 2) return formData.cor !== null
+        if (subStep === 3) return formData.categoriaCor !== null && formData.corSecundaria !== null
+        return false
       case 3: return true // Acessórios são opcionais
       case 4: return formData.nome.trim() !== '' && formData.telefone.length >= 14
       default: return false
@@ -138,12 +291,26 @@ export default function MonteSuaBolsa() {
 
   // Enviar pedido
   const handleSubmit = () => {
-    const formatoNome = formatos.find(f => f.id === formData.formato)?.nome || ''
+    const formatoData = formatos.find(f => f.id === formData.formato)
+    const formatoNome = formatoData?.nome || ''
+    const formatoPreco = formatoData?.preco || 0
     const corNome = cores.find(c => c.id === formData.cor)?.nome || ''
-    const acessoriosNomes = formData.acessorios
-      .map(a => acessorios.find(ac => ac.id === a)?.nome)
-      .filter(Boolean)
-      .join(', ')
+    const corSecundariaNome = cores.find(c => c.id === formData.corSecundaria)?.nome || ''
+    const categoriaNome = formData.categoriaCor === 'piquet' ? 'Piquet' : formData.categoriaCor === 'premium' ? 'Premium' : ''
+
+    const acessoriosSelecionados = formData.acessorios.map(a => {
+      const acessorio = todosAcessorios.find(ac => ac.id === a)
+      return acessorio ? `  - ${acessorio.nome}: ${formatarPreco(acessorio.preco)}` : ''
+    }).filter(Boolean).join('\n')
+
+    const precoCorSecundaria = formData.categoriaCor === 'piquet' ? precoCores.piquet : precoCores.premium
+    const corInfo = formData.quantidadeCores === 'duas'
+      ? `• Cor Principal: ${corNome} (incluso)\n• Cor Secundária: ${corSecundariaNome} (${categoriaNome}): + ${formatarPreco(precoCorSecundaria)}`
+      : `• Cor: ${corNome} (incluso)`
+
+    const acessoriosInfo = formData.acessorios.length > 0
+      ? `• Acessórios: + ${formatarPreco(getPrecoAcessorios())}\n${acessoriosSelecionados}`
+      : '• Acessórios: Nenhum selecionado'
 
     const mensagem = `
 *Monte sua Bolsa - ERYBYERI*
@@ -152,9 +319,13 @@ export default function MonteSuaBolsa() {
 *Telefone:* ${formData.telefone}
 
 *Configuração da Bolsa:*
-• Formato: ${formatoNome}
-• Cor: ${corNome}
-• Acessórios: ${acessoriosNomes || 'Nenhum selecionado'}
+• Formato: ${formatoNome} - ${formatarPreco(formatoPreco)}
+${corInfo}
+${acessoriosInfo}
+
+━━━━━━━━━━━━━━━━━━
+*TOTAL: ${formatarPreco(getPrecoTotal())}*
+━━━━━━━━━━━━━━━━━━
 
 Gostaria de mais informações sobre essa configuração!
     `.trim()
@@ -192,20 +363,56 @@ Gostaria de mais informações sobre essa configuração!
   // Obter nome do formato selecionado
   const getFormatoNome = () => formatos.find(f => f.id === formData.formato)?.nome || ''
   const getCorNome = () => cores.find(c => c.id === formData.cor)?.nome || ''
+  const getCorSecundariaNome = () => cores.find(c => c.id === formData.corSecundaria)?.nome || ''
+  const getCategoriaNome = () => formData.categoriaCor === 'piquet' ? 'Piquet' : formData.categoriaCor === 'premium' ? 'Premium' : ''
+
+  // Formatador de preço
+  const formatarPreco = (valor: number) => {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
+
+  // Cálculo de preços
+  const getPrecoBase = () => formatos.find(f => f.id === formData.formato)?.preco || 0
+  const getPrecoCores = () => {
+    if (formData.quantidadeCores !== 'duas') return 0
+    if (formData.categoriaCor === 'piquet') return precoCores.piquet
+    if (formData.categoriaCor === 'premium') return precoCores.premium
+    return 0
+  }
+  const getPrecoAcessorios = () => {
+    return formData.acessorios.reduce((total, acessorioId) => {
+      const acessorio = todosAcessorios.find(a => a.id === acessorioId)
+      return total + (acessorio?.preco || 0)
+    }, 0)
+  }
+  const getPrecoTotal = () => getPrecoBase() + getPrecoCores() + getPrecoAcessorios()
+
+  // Label da sub-etapa atual
+  const getSubStepLabel = () => {
+    if (step !== 2) return ''
+    if (subStep === 1) return 'Quantidade de Cores'
+    if (subStep === 2) return formData.quantidadeCores === 'duas' ? 'Cor Principal' : 'Cor'
+    if (subStep === 3) return 'Tecido e Cor Secundária'
+    return ''
+  }
 
   return (
     <PageTransition>
       <main className="min-h-screen pt-16 sm:pt-20">
-        {/* Hero Section */}
-        <section className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8 bg-black text-white">
-          <div className="max-w-4xl mx-auto text-center px-2">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light mb-4 sm:mb-6 tracking-wide">
-              Monte sua Bolsa
-            </h1>
-            <p className="text-base sm:text-lg font-light tracking-wider text-gray-300 max-w-2xl mx-auto">
-              Crie uma peça única e exclusiva que reflete seu estilo pessoal
-            </p>
-          </div>
+        {/* Hero Section - GIF Banner */}
+        <section className="w-full h-48 sm:h-56 md:h-64 bg-black overflow-hidden">
+          {/* Mobile */}
+          <img
+            src="/bases/ErybyeriMakeUp-cell.gif"
+            alt="ERYBYERI"
+            className="w-full h-full object-cover object-center sm:hidden"
+          />
+          {/* Desktop */}
+          <img
+            src="/bases/ErybyeriMakeUp.gif"
+            alt="ERYBYERI"
+            className="w-full h-full object-cover object-center hidden sm:block"
+          />
         </section>
 
         {/* Progress Bar */}
@@ -222,10 +429,13 @@ Gostaria de mais informações sobre essa configuração!
             {/* Indicador de etapa */}
             <div className="flex items-center justify-center gap-2 text-sm">
               <span className="font-light text-gray-400">Etapa {step} de 4</span>
+              {step === 2 && (
+                <span className="font-light text-gray-400">({subStep}/{getTotalSubSteps()})</span>
+              )}
               <span className="text-gray-300">—</span>
               <span className="font-light text-black">
                 {step === 1 && 'Formato'}
-                {step === 2 && 'Cor'}
+                {step === 2 && getSubStepLabel()}
                 {step === 3 && 'Acessórios'}
                 {step === 4 && 'Finalizar'}
               </span>
@@ -254,10 +464,10 @@ Gostaria de mais informações sobre essa configuração!
                     <div
                       key={formato.id}
                       onClick={() => handleFormatoSelect(formato.id)}
-                      className={`group cursor-pointer transition-all duration-300 ${
+                      className={`group cursor-pointer transition-all duration-300 rounded-lg overflow-hidden border border-gray-100 ${
                         formData.formato === formato.id
-                          ? 'ring-2 ring-black'
-                          : 'hover:shadow-lg'
+                          ? 'shadow-xl scale-[1.02] -translate-y-1 border-gray-200'
+                          : 'hover:shadow-md hover:border-gray-200'
                       }`}
                     >
                       <div className="aspect-[3/4] bg-gray-100 overflow-hidden relative">
@@ -275,9 +485,14 @@ Gostaria de mais informações sobre essa configuração!
                         )}
                       </div>
                       <div className="p-3 sm:p-4 bg-white">
-                        <h3 className="text-base sm:text-lg font-light tracking-wide mb-1">
-                          {formato.nome}
-                        </h3>
+                        <div className="flex justify-between items-start mb-1">
+                          <h3 className="text-base sm:text-lg font-light tracking-wide">
+                            {formato.nome}
+                          </h3>
+                          <span className="text-sm sm:text-base font-normal text-black">
+                            {formatarPreco(formato.preco)}
+                          </span>
+                        </div>
                         <p className="text-xs sm:text-sm font-light text-gray-500">
                           {formato.descricao}
                         </p>
@@ -288,44 +503,227 @@ Gostaria de mais informações sobre essa configuração!
               </div>
             )}
 
-            {/* Step 2: Cor */}
+            {/* Step 2: Cor - Sub-etapas */}
             {step === 2 && (
               <div className="animate-fadeIn">
-                <div className="text-center mb-10 sm:mb-12">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-4">
-                    Escolha a Cor
-                  </h2>
-                  <p className="text-sm sm:text-base font-light text-gray-600">
-                    Selecione a cor para sua bolsa {getFormatoNome()}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
-                  {cores.map((cor) => (
-                    <div
-                      key={cor.id}
-                      onClick={() => handleCorSelect(cor.id)}
-                      className={`cursor-pointer transition-all duration-300 p-4 sm:p-6 text-center ${
-                        formData.cor === cor.id
-                          ? 'ring-2 ring-black bg-gray-50'
-                          : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <div
-                        className={`w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full mb-3 sm:mb-4 transition-transform duration-300 ${
-                          formData.cor === cor.id ? 'scale-110 ring-2 ring-offset-2 ring-black' : ''
-                        }`}
-                        style={{
-                          backgroundColor: cor.hex,
-                          border: cor.hex === '#FFFFFF' ? '1px solid #e5e5e5' : 'none'
-                        }}
-                      />
-                      <span className="text-xs sm:text-sm font-light tracking-wide">
-                        {cor.nome}
-                      </span>
+                {/* Sub-etapa 1: Quantidade de cores */}
+                {subStep === 1 && (
+                  <>
+                    <div className="text-center mb-10 sm:mb-12">
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-4">
+                        Quantas Cores?
+                      </h2>
+                      <p className="text-sm sm:text-base font-light text-gray-600">
+                        Escolha se deseja sua bolsa {getFormatoNome()} com uma ou duas cores
+                      </p>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl mx-auto">
+                      <div
+                        onClick={() => handleQuantidadeCoresSelect('uma')}
+                        className={`cursor-pointer transition-all duration-300 p-8 sm:p-10 text-center bg-white border border-gray-100 rounded-lg ${
+                          formData.quantidadeCores === 'uma'
+                            ? 'shadow-xl scale-[1.02] -translate-y-1 border-gray-200'
+                            : 'hover:shadow-md hover:border-gray-200'
+                        }`}
+                      >
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800" />
+                        <h3 className="text-lg font-light mb-2">Uma Cor</h3>
+                        <p className="text-sm font-light text-gray-500">
+                          Visual uniforme e elegante
+                        </p>
+                      </div>
+                      <div
+                        onClick={() => handleQuantidadeCoresSelect('duas')}
+                        className={`cursor-pointer transition-all duration-300 p-8 sm:p-10 text-center bg-white border border-gray-100 rounded-lg ${
+                          formData.quantidadeCores === 'duas'
+                            ? 'shadow-xl scale-[1.02] -translate-y-1 border-gray-200'
+                            : 'hover:shadow-md hover:border-gray-200'
+                        }`}
+                      >
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden flex">
+                          <div className="w-1/2 h-full bg-gray-800" />
+                          <div className="w-1/2 h-full bg-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-light mb-2">Duas Cores</h3>
+                        <p className="text-sm font-light text-gray-500">
+                          Combinação personalizada e única
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Sub-etapa 2: Cor principal */}
+                {subStep === 2 && (
+                  <>
+                    <div className="text-center mb-10 sm:mb-12">
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-4">
+                        {formData.quantidadeCores === 'duas' ? 'Cor Principal' : 'Escolha a Cor'}
+                      </h2>
+                      <p className="text-sm sm:text-base font-light text-gray-600">
+                        {formData.quantidadeCores === 'duas'
+                          ? 'Selecione a cor principal da sua bolsa'
+                          : 'Selecione a cor para sua bolsa ' + getFormatoNome()}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
+                      {cores.map((cor) => (
+                        <div
+                          key={cor.id}
+                          onClick={() => handleCorSelect(cor.id)}
+                          className={`cursor-pointer transition-all duration-300 p-4 sm:p-6 text-center rounded-lg border border-gray-100 bg-white ${
+                            formData.cor === cor.id
+                              ? 'shadow-xl scale-[1.02] -translate-y-1 border-gray-200'
+                              : 'hover:shadow-md hover:border-gray-200'
+                          }`}
+                        >
+                          <div
+                            className={`w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full mb-3 sm:mb-4 transition-all duration-300 ${
+                              formData.cor === cor.id ? 'scale-110 shadow-lg' : ''
+                            }`}
+                            style={{
+                              backgroundColor: cor.hex,
+                              border: cor.hex === '#FFFFFF' ? '1px solid #e5e5e5' : 'none'
+                            }}
+                          />
+                          <span className="text-xs sm:text-sm font-light tracking-wide">
+                            {cor.nome}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Sub-etapa 3: Tecido + Cor secundária (apenas para duas cores) */}
+                {subStep === 3 && formData.quantidadeCores === 'duas' && (
+                  <>
+                    <div className="text-center mb-10 sm:mb-12">
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-4">
+                        Escolha o Tecido e Cor
+                      </h2>
+                      <p className="text-sm sm:text-base font-light text-gray-600">
+                        Clique na cor desejada para selecionar o tecido
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-8 max-w-3xl mx-auto">
+                      {/* Piquet */}
+                      <div className={`p-6 sm:p-8 transition-all duration-300 bg-white rounded-lg border border-gray-100 ${
+                        formData.categoriaCor === 'piquet' ? 'shadow-xl scale-[1.01] -translate-y-1 border-gray-200' : 'hover:border-gray-200'
+                      }`}>
+                        <div className="flex justify-between items-start mb-6">
+                          <div>
+                            <h3 className="text-xl font-light mb-1">Piquet</h3>
+                            <p className="text-sm font-light text-gray-500">
+                              Textura clássica e atemporal
+                            </p>
+                          </div>
+                          <span className="text-sm sm:text-base font-normal text-black">
+                            + {formatarPreco(precoCores.piquet)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 sm:gap-4">
+                          {cores.map((cor) => (
+                            <div
+                              key={cor.id}
+                              onClick={() => handleTecidoCorSelect('piquet', cor.id)}
+                              className="flex flex-col items-center cursor-pointer group"
+                            >
+                              <div
+                                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full mb-1 transition-all duration-200 ${
+                                  formData.categoriaCor === 'piquet' && formData.corSecundaria === cor.id
+                                    ? 'scale-125 shadow-lg'
+                                    : 'group-hover:scale-110'
+                                }`}
+                                style={{
+                                  backgroundColor: cor.hex,
+                                  border: cor.hex === '#FFFFFF' ? '1px solid #e5e5e5' : 'none'
+                                }}
+                              />
+                              <span className="text-[10px] sm:text-xs font-light text-gray-500 text-center leading-tight">
+                                {cor.nome}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Premium */}
+                      <div className={`p-6 sm:p-8 transition-all duration-300 bg-white rounded-lg border border-gray-100 ${
+                        formData.categoriaCor === 'premium' ? 'shadow-xl scale-[1.01] -translate-y-1 border-gray-200' : 'hover:border-gray-200'
+                      }`}>
+                        <div className="flex justify-between items-start mb-6">
+                          <div>
+                            <h3 className="text-xl font-light mb-1">Premium</h3>
+                            <p className="text-sm font-light text-gray-500">
+                              Acabamento sofisticado e luxuoso
+                            </p>
+                          </div>
+                          <span className="text-sm sm:text-base font-normal text-black">
+                            + {formatarPreco(precoCores.premium)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 sm:gap-4">
+                          {cores.map((cor) => (
+                            <div
+                              key={cor.id}
+                              onClick={() => handleTecidoCorSelect('premium', cor.id)}
+                              className="flex flex-col items-center cursor-pointer group"
+                            >
+                              <div
+                                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full mb-1 transition-all duration-200 ${
+                                  formData.categoriaCor === 'premium' && formData.corSecundaria === cor.id
+                                    ? 'scale-125 shadow-lg'
+                                    : 'group-hover:scale-110'
+                                }`}
+                                style={{
+                                  backgroundColor: cor.hex,
+                                  border: cor.hex === '#FFFFFF' ? '1px solid #e5e5e5' : 'none'
+                                }}
+                              />
+                              <span className="text-[10px] sm:text-xs font-light text-gray-500 text-center leading-tight">
+                                {cor.nome}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preview da seleção */}
+                    {formData.corSecundaria && (
+                      <div className="mt-8 text-center">
+                        <p className="text-sm font-light text-gray-500 mb-3">Sua combinação:</p>
+                        <div className="flex items-center justify-center gap-4">
+                          <div className="flex flex-col items-center">
+                            <div
+                              className="w-12 h-12 rounded-full"
+                              style={{
+                                backgroundColor: cores.find(c => c.id === formData.cor)?.hex,
+                                border: formData.cor === 'branco' ? '1px solid #e5e5e5' : 'none'
+                              }}
+                            />
+                            <span className="text-xs font-light mt-1">Principal</span>
+                          </div>
+                          <span className="text-gray-400">+</span>
+                          <div className="flex flex-col items-center">
+                            <div
+                              className="w-12 h-12 rounded-full"
+                              style={{
+                                backgroundColor: cores.find(c => c.id === formData.corSecundaria)?.hex,
+                                border: formData.corSecundaria === 'branco' ? '1px solid #e5e5e5' : 'none'
+                              }}
+                            />
+                            <span className="text-xs font-light mt-1">{getCategoriaNome()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
@@ -337,34 +735,41 @@ Gostaria de mais informações sobre essa configuração!
                     Adicione Acessórios
                   </h2>
                   <p className="text-sm sm:text-base font-light text-gray-600">
-                    Personalize ainda mais sua bolsa (opcional)
+                    Acessórios disponíveis para sua {getFormatoNome()} (opcional)
                   </p>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto">
-                  {acessorios.map((acessorio) => (
+                  {getAcessoriosDisponiveis().map((acessorio) => (
                     <div
                       key={acessorio.id}
                       onClick={() => handleAcessorioToggle(acessorio.id)}
-                      className={`cursor-pointer transition-all duration-300 p-4 sm:p-5 border flex items-center gap-4 ${
+                      className={`cursor-pointer transition-all duration-300 p-4 sm:p-5 flex items-center justify-between rounded-lg border ${
                         formData.acessorios.includes(acessorio.id)
-                          ? 'border-black bg-black text-white'
-                          : 'border-gray-200 hover:border-black'
+                          ? 'shadow-xl scale-[1.02] -translate-y-1 bg-black text-white border-black'
+                          : 'border-gray-100 hover:border-gray-200 hover:shadow-md bg-white'
                       }`}
                     >
-                      <div
-                        className={`w-5 h-5 sm:w-6 sm:h-6 border flex items-center justify-center flex-shrink-0 transition-all ${
-                          formData.acessorios.includes(acessorio.id)
-                            ? 'border-white bg-white'
-                            : 'border-gray-300'
-                        }`}
-                      >
-                        {formData.acessorios.includes(acessorio.id) && (
-                          <span className="text-black text-sm">✓</span>
-                        )}
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`w-5 h-5 sm:w-6 sm:h-6 border flex items-center justify-center flex-shrink-0 transition-all rounded ${
+                            formData.acessorios.includes(acessorio.id)
+                              ? 'border-white bg-white'
+                              : 'border-gray-300'
+                          }`}
+                        >
+                          {formData.acessorios.includes(acessorio.id) && (
+                            <span className="text-black text-sm">✓</span>
+                          )}
+                        </div>
+                        <span className="text-sm sm:text-base font-light">
+                          {acessorio.nome}
+                        </span>
                       </div>
-                      <span className="text-sm sm:text-base font-light">
-                        {acessorio.nome}
+                      <span className={`text-sm font-normal flex-shrink-0 ${
+                        formData.acessorios.includes(acessorio.id) ? 'text-white' : 'text-black'
+                      }`}>
+                        + {formatarPreco(acessorio.preco)}
                       </span>
                     </div>
                   ))}
@@ -374,6 +779,8 @@ Gostaria de mais informações sobre essa configuração!
                   <div className="mt-8 text-center">
                     <p className="text-sm font-light text-gray-500">
                       {formData.acessorios.length} acessório{formData.acessorios.length > 1 ? 's' : ''} selecionado{formData.acessorios.length > 1 ? 's' : ''}
+                      <span className="mx-2">•</span>
+                      <span className="text-black font-normal">+ {formatarPreco(getPrecoAcessorios())}</span>
                     </p>
                   </div>
                 )}
@@ -393,44 +800,99 @@ Gostaria de mais informações sobre essa configuração!
                 </div>
 
                 <div className="max-w-3xl mx-auto">
-                  {/* Resumo */}
+                  {/* Resumo com Preços */}
                   <div className="bg-gray-50 p-6 sm:p-8 mb-8 sm:mb-10">
                     <h3 className="text-lg sm:text-xl font-light mb-6 tracking-wide">
                       RESUMO DA SUA BOLSA
                     </h3>
                     <div className="space-y-4">
+                      {/* Formato/Base */}
                       <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                        <span className="text-sm font-light text-gray-600">Formato</span>
-                        <span className="text-sm sm:text-base font-light">{getFormatoNome()}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                        <span className="text-sm font-light text-gray-600">Cor</span>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-5 h-5 rounded-full"
-                            style={{
-                              backgroundColor: cores.find(c => c.id === formData.cor)?.hex,
-                              border: formData.cor === 'branco' ? '1px solid #e5e5e5' : 'none'
-                            }}
-                          />
-                          <span className="text-sm sm:text-base font-light">{getCorNome()}</span>
+                        <div>
+                          <span className="text-sm font-light text-gray-600">Formato</span>
+                          <p className="text-sm sm:text-base font-light">{getFormatoNome()}</p>
                         </div>
+                        <span className="text-sm sm:text-base font-normal">{formatarPreco(getPrecoBase())}</span>
                       </div>
-                      <div className="flex justify-between items-start py-3">
-                        <span className="text-sm font-light text-gray-600">Acessórios</span>
-                        <div className="text-right">
-                          {formData.acessorios.length > 0 ? (
-                            <ul className="space-y-1">
-                              {formData.acessorios.map(a => (
-                                <li key={a} className="text-sm sm:text-base font-light">
-                                  {acessorios.find(ac => ac.id === a)?.nome}
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <span className="text-sm font-light text-gray-400">Nenhum</span>
+
+                      {/* Cores */}
+                      {formData.quantidadeCores === 'duas' ? (
+                        <>
+                          <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-light text-gray-600">Cor Principal:</span>
+                              <div
+                                className="w-5 h-5 rounded-full"
+                                style={{
+                                  backgroundColor: cores.find(c => c.id === formData.cor)?.hex,
+                                  border: formData.cor === 'branco' ? '1px solid #e5e5e5' : 'none'
+                                }}
+                              />
+                              <span className="text-sm font-light">{getCorNome()}</span>
+                            </div>
+                            <span className="text-sm text-gray-400">Incluso</span>
+                          </div>
+                          <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-light text-gray-600">Cor Secundária ({getCategoriaNome()}):</span>
+                              <div
+                                className="w-5 h-5 rounded-full"
+                                style={{
+                                  backgroundColor: cores.find(c => c.id === formData.corSecundaria)?.hex,
+                                  border: formData.corSecundaria === 'branco' ? '1px solid #e5e5e5' : 'none'
+                                }}
+                              />
+                              <span className="text-sm font-light">{getCorSecundariaNome()}</span>
+                            </div>
+                            <span className="text-sm sm:text-base font-normal">+ {formatarPreco(getPrecoCores())}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-light text-gray-600">Cor:</span>
+                            <div
+                              className="w-5 h-5 rounded-full"
+                              style={{
+                                backgroundColor: cores.find(c => c.id === formData.cor)?.hex,
+                                border: formData.cor === 'branco' ? '1px solid #e5e5e5' : 'none'
+                              }}
+                            />
+                            <span className="text-sm font-light">{getCorNome()}</span>
+                          </div>
+                          <span className="text-sm text-gray-400">Incluso</span>
+                        </div>
+                      )}
+
+                      {/* Acessórios */}
+                      <div className="py-3 border-b border-gray-200">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-light text-gray-600">Acessórios</span>
+                          {formData.acessorios.length > 0 && (
+                            <span className="text-sm sm:text-base font-normal">+ {formatarPreco(getPrecoAcessorios())}</span>
                           )}
                         </div>
+                        {formData.acessorios.length > 0 ? (
+                          <ul className="space-y-1 mt-2">
+                            {formData.acessorios.map(a => {
+                              const acessorio = todosAcessorios.find(ac => ac.id === a)
+                              return (
+                                <li key={a} className="flex justify-between text-sm font-light text-gray-500">
+                                  <span>{acessorio?.nome}</span>
+                                  <span>{formatarPreco(acessorio?.preco || 0)}</span>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        ) : (
+                          <span className="text-sm font-light text-gray-400">Nenhum selecionado</span>
+                        )}
+                      </div>
+
+                      {/* Total */}
+                      <div className="flex justify-between items-center pt-4">
+                        <span className="text-lg font-light">TOTAL</span>
+                        <span className="text-xl sm:text-2xl font-normal">{formatarPreco(getPrecoTotal())}</span>
                       </div>
                     </div>
                   </div>
@@ -451,7 +913,7 @@ Gostaria de mais informações sobre essa configuração!
                           value={formData.nome}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 sm:px-6 py-3 sm:py-4 border border-gray-300 focus:border-black focus:outline-none transition-colors text-sm sm:text-base"
+                          className="w-full px-4 sm:px-6 py-3 sm:py-4 border border-gray-300 focus:border-black focus:outline-none transition-colors text-base"
                           placeholder="Seu nome"
                         />
                       </div>
@@ -466,7 +928,7 @@ Gostaria de mais informações sobre essa configuração!
                           onChange={handleTelefoneChange}
                           required
                           maxLength={15}
-                          className="w-full px-4 sm:px-6 py-3 sm:py-4 border border-gray-300 focus:border-black focus:outline-none transition-colors text-sm sm:text-base"
+                          className="w-full px-4 sm:px-6 py-3 sm:py-4 border border-gray-300 focus:border-black focus:outline-none transition-colors text-base"
                           placeholder="(00) 00000-0000"
                         />
                       </div>
@@ -477,43 +939,53 @@ Gostaria de mais informações sobre essa configuração!
             )}
 
             {/* Navigation Buttons */}
-            <div className={`flex items-center mt-12 sm:mt-16 pt-8 border-t border-gray-200 ${
-              step === 1 ? 'justify-center' : 'justify-between'
-            }`}>
-              {step > 1 && (
-                <button
-                  onClick={prevStep}
-                  className="px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm tracking-wider border border-black transition-all duration-300 hover:bg-black hover:text-white"
-                >
-                  VOLTAR
-                </button>
+            <div className="mt-12 sm:mt-16 pt-8 border-t border-gray-200">
+              {/* Preço Total */}
+              {getPrecoTotal() > 0 && step !== 4 && (
+                <div className="text-center mb-6">
+                  <span className="text-sm text-gray-500">Total parcial: </span>
+                  <span className="text-xl font-normal">{formatarPreco(getPrecoTotal())}</span>
+                </div>
               )}
 
-              {step < totalSteps ? (
-                <button
-                  onClick={nextStep}
-                  disabled={!canProceed()}
-                  className={`px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm tracking-wider transition-all duration-300 ${
-                    canProceed()
-                      ? 'bg-black text-white hover:bg-gray-800'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  CONTINUAR
-                </button>
-              ) : (
-                <button
-                  onClick={handleSubmit}
-                  disabled={!canProceed()}
-                  className={`px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm tracking-wider transition-all duration-300 ${
-                    canProceed()
-                      ? 'bg-black text-white hover:bg-gray-800'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  ENVIAR VIA INSTAGRAM
-                </button>
-              )}
+              <div className={`flex items-center ${
+                step === 1 ? 'justify-center' : 'justify-between'
+              }`}>
+                {step > 1 && (
+                  <button
+                    onClick={prevStep}
+                    className="px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm tracking-wider border border-black transition-all duration-300 hover:bg-black hover:text-white"
+                  >
+                    VOLTAR
+                  </button>
+                )}
+
+                {step < totalSteps ? (
+                  <button
+                    onClick={nextStep}
+                    disabled={!canProceed()}
+                    className={`px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm tracking-wider transition-all duration-300 ${
+                      canProceed()
+                        ? 'bg-black text-white hover:bg-gray-800'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    CONTINUAR
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!canProceed()}
+                    className={`px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm tracking-wider transition-all duration-300 ${
+                      canProceed()
+                        ? 'bg-black text-white hover:bg-gray-800'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    ENVIAR VIA INSTAGRAM
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </section>
